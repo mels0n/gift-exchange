@@ -40,7 +40,7 @@ export async function processJobQueue() {
 async function processSingleJob(job: { id: string; type: string; payload: string; attempts: number }) {
     const payload = JSON.parse(job.payload);
     const useRealEmail = process.env.RESEND_API_KEY?.startsWith('re_');
-    const from = process.env.EMAIL_FROM ?? 'Gift Exchange <no-reply@resend.dev>';
+    const from = process.env.EMAIL_FROM ?? 'Giftr <no-reply@resend.dev>';
 
     switch (job.type) {
         case 'SEND_OTP':

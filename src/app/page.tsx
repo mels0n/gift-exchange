@@ -5,7 +5,7 @@ export default function HomePage() {
         <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#2a1b1b] to-black text-white flex flex-col items-center justify-center p-8">
             <div className="max-w-2xl text-center mb-12">
                 <h1 className="text-5xl font-serif font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-red-200 to-rose-100">
-                    🎄 Family Gift Exchange
+                    🎄 Giftr
                 </h1>
                 <p className="text-lg text-white/60 leading-relaxed mb-8">
                     Organise a private gift exchange for your family. Create an event, invite households, and let the algorithm handle the matching — then everyone gets their assignments by email.

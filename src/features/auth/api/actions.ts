@@ -26,8 +26,15 @@ export async function requestOtp(formData: FormData) {
     });
 
     if (!household) {
-        // Return success anyway to avoid email enumeration
-        return { success: true, email };
+        // Allow OTP for invited users who haven't registered yet
+        const pendingInvite = await db.invite.findFirst({
+            where: { email, status: 'PENDING' },
+        });
+        if (!pendingInvite) {
+            // No household, no invite — return fake success to avoid email enumeration
+            return { success: true, email };
+        }
+        // Has a pending invite — fall through to send OTP
     }
 
     // Generate 6-digit OTP

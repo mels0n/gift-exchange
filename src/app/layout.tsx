@@ -18,8 +18,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: 'Family Gift Exchange',
-  description: 'A private gift exchange organiser for families. Create events, invite households, and let the algorithm handle the matching.',
+  title: 'Giftr',
+  description: 'Giftr — a private gift exchange organiser for families. Create events, invite households, and let the algorithm handle the matching.',
 };
 
 export default function RootLayout({

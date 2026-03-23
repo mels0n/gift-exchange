@@ -10,7 +10,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 <div className="text-center space-y-2">
                     <div className="inline-block animate-bounce-slow text-6xl mb-4 filter drop-shadow-glow">🎅</div>
                     <h1 className="text-5xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-200 via-rose-100 to-red-200 drop-shadow-sm tracking-tight">
-                        Cousin Exchange
+                        Giftr
                     </h1>
                     <p className="text-red-200/80 text-lg font-light tracking-wide">
                         The thoughtful way to give.
