@@ -57,6 +57,11 @@ export function HouseholdRegistrationForm() {
                                 className="flex-1 p-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all"
                                 required
                             />
+                            <input
+                                name="kidDob"
+                                type="date"
+                                className="p-3 bg-black/20 border border-white/10 rounded-xl text-white/70 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all w-40"
+                            />
                             {kids.length > 1 && (
                                 <button type="button" onClick={() => removeKid(i)} className="text-red-400 hover:text-red-300 p-2 transition-colors">
                                     <Trash2 size={20} />

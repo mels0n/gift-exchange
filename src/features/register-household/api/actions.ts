@@ -11,6 +11,7 @@ export async function registerHousehold(formData: FormData) {
     const name = formData.get('name') as string;
     const parentEmail = (formData.get('parentEmail') as string | null) ?? '';
     const kidNames = formData.getAll('kidName') as string[];
+    const kidDobs = formData.getAll('kidDob') as string[];
 
     if (!name) return { error: 'Missing required fields' };
 
@@ -24,7 +25,9 @@ export async function registerHousehold(formData: FormData) {
                 name,
                 emails: JSON.stringify(emails),
                 kids: {
-                    create: kidNames.filter(k => k.trim()).map(k => ({ name: k.trim() })),
+                    create: kidNames
+                    .map((name, i) => ({ name: name.trim(), dob: kidDobs[i] ? new Date(kidDobs[i]) : null }))
+                    .filter(k => k.name.length > 0),
                 },
             },
         });

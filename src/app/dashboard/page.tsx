@@ -83,7 +83,14 @@ export default async function DashboardPage() {
                                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center text-xs font-bold shadow-lg">
                                         {kid.name.charAt(0)}
                                     </div>
-                                    <span className="text-lg font-medium text-white/90">{kid.name}</span>
+                                    <div>
+                                        <span className="text-lg font-medium text-white/90">{kid.name}</span>
+                                        {kid.dob && (
+                                            <p className="text-xs text-white/40 mt-0.5">
+                                                b. {new Date(kid.dob).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
