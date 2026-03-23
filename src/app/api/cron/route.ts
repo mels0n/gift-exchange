@@ -4,8 +4,7 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
     const authHeader = request.headers.get('authorization');
     if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        // Basic protection (optional for self-hosted inner loop)
-        // return new NextResponse('Unauthorized', { status: 401 });
+        return new NextResponse('Unauthorized', { status: 401 });
     }
 
     try {
