@@ -9,8 +9,6 @@ import { RemindButton } from './RemindButton';
 export default async function AdminPage() {
     const { email } = await requireSession();
 
-    const houseCount = await db.household.count();
-    const jobsPending = await db.job.count({ where: { status: 'PENDING' } });
     const events = await db.event.findMany({
         orderBy: { createdAt: 'desc' },
         include: { _count: { select: { participations: true, matches: true } } },
@@ -52,13 +50,7 @@ export default async function AdminPage() {
 
     return (
         <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#2a1b1b] to-black text-white p-8 overflow-hidden">
-            <h1 className="text-3xl font-serif font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-red-200 to-rose-100">Admin Operations</h1>
-
-            <div className="grid grid-cols-3 gap-6 mb-8">
-                <StatCard title="Households" value={houseCount} />
-                <StatCard title="Events" value={events.length} />
-                <StatCard title="Pending Jobs" value={jobsPending} />
-            </div>
+            <h1 className="text-3xl font-serif font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-red-200 to-rose-100">My Events</h1>
 
             {/* Create Event */}
             <section className="backdrop-blur-md bg-white/5 border border-white/10 p-6 rounded-xl shadow-lg mb-8">
@@ -167,15 +159,6 @@ export default async function AdminPage() {
                 <RulesCard />
             </div>
         </main>
-    );
-}
-
-function StatCard({ title, value }: { title: string; value: number }) {
-    return (
-        <div className="backdrop-blur-md bg-white/5 border border-white/10 p-6 rounded-xl">
-            <h3 className="text-white/60 font-medium uppercase tracking-wider text-xs">{title}</h3>
-            <p className="text-4xl font-bold text-white mt-1">{value}</p>
-        </div>
     );
 }
 
