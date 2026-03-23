@@ -24,6 +24,18 @@ export default async function AdminPage() {
           })
         : [];
 
+    const myMatches = myEventIds.length > 0
+        ? await db.match.findMany({
+            where: { eventId: { in: myEventIds } },
+            include: {
+                giverHouse: true,
+                recipientKid: { include: { household: true } },
+                event: true,
+            },
+            orderBy: [{ event: { name: 'asc' } }, { giverHouse: { name: 'asc' } }],
+          })
+        : [];
+
     return (
         <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#2a1b1b] to-black text-white p-8 overflow-hidden">
             <h1 className="text-3xl font-serif font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-red-200 to-rose-100">Admin Operations</h1>
@@ -88,6 +100,36 @@ export default async function AdminPage() {
                                 </div>
                             );
                         })}
+                    </div>
+                </section>
+            )}
+
+            {myMatches.length > 0 && (
+                <section className="backdrop-blur-md bg-white/5 border border-white/10 p-6 rounded-xl shadow-lg mb-8">
+                    <h2 className="text-xl font-serif text-white/90 mb-4">Match Results</h2>
+                    <div className="space-y-6">
+                        {Object.entries(
+                            myMatches.reduce<Record<string, typeof myMatches>>((acc, m) => {
+                                const key = m.event.name;
+                                if (!acc[key]) acc[key] = [];
+                                acc[key].push(m);
+                                return acc;
+                            }, {})
+                        ).map(([eventName, matches]) => (
+                            <div key={eventName}>
+                                <p className="text-xs uppercase tracking-wider text-white/40 font-medium mb-2">{eventName}</p>
+                                <div className="space-y-1">
+                                    {matches.map(m => (
+                                        <div key={m.id} className="flex items-center gap-3 bg-black/20 border border-white/5 rounded-xl px-4 py-2 text-sm">
+                                            <span className="text-white/90 font-medium">{m.giverHouse.name}</span>
+                                            <span className="text-white/30">→</span>
+                                            <span className="text-white/70">{m.recipientKid.name}</span>
+                                            <span className="text-white/30 text-xs">({m.recipientKid.household.name})</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </section>
             )}

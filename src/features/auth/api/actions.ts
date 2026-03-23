@@ -73,10 +73,9 @@ export async function verifyOtp(email: string, code: string, redirectTo = '/dash
         return { error: 'Invalid or expired code.' };
     }
 
-    // Mark code as used
-    await db.otpCode.update({
+    // Delete after use — no need to keep spent codes
+    await db.otpCode.delete({
         where: { id: otpRecord.id },
-        data: { used: true },
     });
 
     await setSession(email);
