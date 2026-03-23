@@ -178,3 +178,30 @@ export async function sendInvites(formData: FormData) {
     revalidatePath('/admin');
     return { success: true, sent };
 }
+
+export async function remindInvite(inviteId: string) {
+    const { email: organizer } = await requireSession();
+
+    const invite = await db.invite.findUnique({
+        where: { id: inviteId },
+        include: { event: true },
+    });
+
+    if (!invite || invite.status !== 'PENDING') return { error: 'Invite not found or not pending.' };
+    if (invite.event.createdByEmail !== organizer) return { error: 'Not authorized.' };
+
+    await db.job.create({
+        data: {
+            type: 'SEND_INVITE',
+            payload: JSON.stringify({
+                email: invite.email,
+                eventId: invite.eventId,
+                eventName: invite.event.name,
+                inviteToken: invite.token,
+            }),
+        },
+    });
+
+    revalidatePath('/admin');
+    return { success: true };
+}

@@ -4,6 +4,7 @@ import { RulesCard } from '@/features/matching/ui/RulesCard';
 import { CreateEventForm } from './CreateEventForm';
 import { RunMatchingButton } from './RunMatchingButton';
 import { InviteForm } from './InviteForm';
+import { RemindButton } from './RemindButton';
 
 export default async function AdminPage() {
     const { email } = await requireSession();
@@ -35,6 +36,19 @@ export default async function AdminPage() {
             orderBy: [{ event: { name: 'asc' } }, { giverHouse: { name: 'asc' } }],
           })
         : [];
+
+    const myInvites = myEventIds.length > 0
+        ? await db.invite.findMany({
+            where: { eventId: { in: myEventIds } },
+            orderBy: { createdAt: 'asc' },
+          })
+        : [];
+
+    const invitesByEvent = myInvites.reduce<Record<string, typeof myInvites>>((acc, inv) => {
+        if (!acc[inv.eventId]) acc[inv.eventId] = [];
+        acc[inv.eventId].push(inv);
+        return acc;
+    }, {});
 
     return (
         <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#2a1b1b] to-black text-white p-8 overflow-hidden">
@@ -78,6 +92,20 @@ export default async function AdminPage() {
                                 </div>
                                 {event.createdByEmail === email && (
                                     <InviteForm eventId={event.id} />
+                                )}
+                                {event.createdByEmail === email && (invitesByEvent[event.id]?.length ?? 0) > 0 && (
+                                    <div className="mt-4 border-t border-white/5 pt-4 space-y-1">
+                                        <p className="text-xs uppercase tracking-wider text-white/30 mb-2">Invites</p>
+                                        {invitesByEvent[event.id].map(inv => (
+                                            <div key={inv.id} className="flex items-center justify-between rounded-lg px-3 py-1.5 bg-black/20">
+                                                <span className="text-sm text-white/60">{inv.email}</span>
+                                                <div className="flex items-center gap-3">
+                                                    <InviteStatusBadge status={inv.status} />
+                                                    {inv.status === 'PENDING' && <RemindButton inviteId={inv.id} />}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                         ))}
@@ -148,6 +176,19 @@ function StatCard({ title, value }: { title: string; value: number }) {
             <h3 className="text-white/60 font-medium uppercase tracking-wider text-xs">{title}</h3>
             <p className="text-4xl font-bold text-white mt-1">{value}</p>
         </div>
+    );
+}
+
+function InviteStatusBadge({ status }: { status: string }) {
+    const styles: Record<string, string> = {
+        PENDING: 'bg-yellow-900/50 text-yellow-300',
+        ACCEPTED: 'bg-emerald-900/50 text-emerald-300',
+        DECLINED: 'bg-red-900/50 text-red-300',
+    };
+    return (
+        <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded ${styles[status] ?? 'bg-zinc-700/50 text-zinc-300'}`}>
+            {status}
+        </span>
     );
 }
 
