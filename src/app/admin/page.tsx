@@ -3,6 +3,7 @@ import { requireSession } from '@/shared/lib/session';
 import { RulesCard } from '@/features/matching/ui/RulesCard';
 import { CreateEventForm } from './CreateEventForm';
 import { RunMatchingButton } from './RunMatchingButton';
+import { InviteForm } from './InviteForm';
 
 export default async function AdminPage() {
     const { email } = await requireSession();
@@ -47,20 +48,25 @@ export default async function AdminPage() {
                 ) : (
                     <div className="space-y-4">
                         {events.map(event => (
-                            <div key={event.id} className="flex items-center justify-between bg-black/20 border border-white/5 rounded-xl p-4">
-                                <div>
-                                    <p className="font-semibold text-white/90">{event.name}</p>
-                                    <p className="text-xs text-white/40 mt-0.5">
-                                        {event._count.participations} households · {event._count.matches} matches · ${event.budget}/kid · {event.items} items
-                                    </p>
-                                    <p className="text-xs text-white/30 mt-0.5">by {event.createdByEmail || 'unknown'}</p>
+                            <div key={event.id} className="bg-black/20 border border-white/5 rounded-xl p-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-semibold text-white/90">{event.name}</p>
+                                        <p className="text-xs text-white/40 mt-0.5">
+                                            {event._count.participations} households · {event._count.matches} matches · ${event.budget}/kid · {event.items} items
+                                        </p>
+                                        <p className="text-xs text-white/30 mt-0.5">by {event.createdByEmail || 'unknown'}</p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <StatusBadge status={event.status} />
+                                        {event.status === 'OPEN' && event.createdByEmail === email && (
+                                            <RunMatchingButton eventId={event.id} />
+                                        )}
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <StatusBadge status={event.status} />
-                                    {event.status === 'OPEN' && event.createdByEmail === email && (
-                                        <RunMatchingButton eventId={event.id} />
-                                    )}
-                                </div>
+                                {event.createdByEmail === email && (
+                                    <InviteForm eventId={event.id} />
+                                )}
                             </div>
                         ))}
                     </div>

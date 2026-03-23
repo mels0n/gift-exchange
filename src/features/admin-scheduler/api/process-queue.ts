@@ -124,6 +124,47 @@ async function processSingleJob(job: { id: string; type: string; payload: string
             break;
         }
 
+        case 'SEND_INVITE': {
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
+            const acceptUrl = `${baseUrl}/invite/${payload.inviteToken}`;
+
+            const html = `<!DOCTYPE html>
+<html>
+<body style="font-family:Georgia,serif;background:#0f0f0f;color:#f5f0eb;margin:0;padding:32px;">
+  <div style="max-width:480px;margin:0 auto;background:#1a1010;border:1px solid #3a2020;border-radius:12px;padding:40px;">
+    <h1 style="font-size:24px;color:#f8c4c4;margin:0 0 16px;">🎄 You're invited!</h1>
+    <p style="color:#a08080;font-size:15px;margin:0 0 24px;">
+      You've been invited to join <strong style="color:#f8c4c4;">${payload.eventName}</strong>.
+    </p>
+    <div style="text-align:center;">
+      <a href="${acceptUrl}" style="display:inline-block;background:linear-gradient(135deg,#b91c1c,#be185d);color:white;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:600;letter-spacing:0.05em;">
+        Accept Invitation →
+      </a>
+    </div>
+    <p style="font-size:11px;color:#604040;text-align:center;margin:24px 0 0;">
+      If you weren't expecting this, you can ignore this email.
+    </p>
+  </div>
+</body>
+</html>`;
+
+            if (useRealEmail) {
+                await resend.emails.send({
+                    from,
+                    to: payload.email,
+                    subject: `🎄 You're invited to ${payload.eventName}`,
+                    html,
+                });
+            } else {
+                console.log('[MOCK SEND_INVITE]', {
+                    to: payload.email,
+                    event: payload.eventName,
+                    acceptUrl,
+                });
+            }
+            break;
+        }
+
         default:
             throw new Error(`Unknown job type: ${job.type}`);
     }
