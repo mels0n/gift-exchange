@@ -131,3 +131,50 @@ export async function runMatching(eventId: string) {
     revalidatePath('/admin');
     return { success: true, matchCount: matches.length };
 }
+
+export async function sendInvites(formData: FormData) {
+    const { email: organizer } = await requireSession();
+
+    const eventId = formData.get('eventId') as string | null;
+    if (!eventId) return { error: 'Missing event ID.' };
+
+    const event = await db.event.findUnique({ where: { id: eventId } });
+    if (!event) return { error: 'Event not found.' };
+    if (event.createdByEmail !== organizer) return { error: 'Only the event creator can send invites.' };
+
+    const rawEmails = (formData.get('emails') as string | null) ?? '';
+    const emails = rawEmails
+        .split(/[\n,]+/)
+        .map(e => e.trim().toLowerCase())
+        .filter(e => e.length > 0);
+
+    if (emails.length === 0) return { error: 'Enter at least one email address.' };
+
+    let sent = 0;
+    for (const email of emails) {
+        const existing = await db.invite.findUnique({
+            where: { eventId_email: { eventId, email } },
+        });
+        if (existing) continue;
+
+        const invite = await db.invite.create({
+            data: { eventId, email },
+        });
+
+        await db.job.create({
+            data: {
+                type: 'SEND_INVITE',
+                payload: JSON.stringify({
+                    email,
+                    eventId,
+                    eventName: event.name,
+                    inviteToken: invite.token,
+                }),
+            },
+        });
+        sent++;
+    }
+
+    revalidatePath('/admin');
+    return { success: true, sent };
+}
