@@ -43,18 +43,33 @@ async function processSingleJob(job: { id: string; type: string; payload: string
     const from = process.env.EMAIL_FROM ?? 'Giftr <no-reply@resend.dev>';
 
     switch (job.type) {
-        case 'SEND_OTP':
+        case 'SEND_OTP': {
             if (useRealEmail) {
+                const otpHtml = `<!DOCTYPE html>
+<html>
+<body style="font-family:Georgia,serif;background:#0f0f0f;color:#f5f0eb;margin:0;padding:32px;">
+  <div style="max-width:480px;margin:0 auto;background:#1a1010;border:1px solid #3a2020;border-radius:12px;padding:40px;">
+    <h1 style="font-size:22px;color:#f8c4c4;margin:0 0 8px;letter-spacing:0.02em;">🎄 Giftr</h1>
+    <p style="color:#806060;font-size:13px;margin:0 0 32px;text-transform:uppercase;letter-spacing:0.08em;">Login Code</p>
+    <p style="color:#a08080;font-size:15px;margin:0 0 24px;">Use the code below to sign in. It expires in 10 minutes.</p>
+    <div style="text-align:center;background:#0f0808;border:1px solid #5a2020;border-radius:8px;padding:32px 20px;margin-bottom:32px;">
+      <span style="font-size:42px;font-weight:700;letter-spacing:0.25em;color:#f8c4c4;font-family:monospace;">${payload.code}</span>
+    </div>
+    <p style="font-size:12px;color:#604040;text-align:center;margin:0;">If you didn&apos;t request this code, you can safely ignore this email.</p>
+  </div>
+</body>
+</html>`;
                 await resend.emails.send({
                     from,
                     to: payload.email,
-                    subject: 'Your Login Code',
-                    html: `<p>Your code is: <strong>${payload.code}</strong></p>`,
+                    subject: 'Your Giftr Login Code',
+                    html: otpHtml,
                 });
             } else {
                 console.log('[MOCK SEND_OTP]', payload);
             }
             break;
+        }
 
         case 'SEND_MATCH': {
             const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
