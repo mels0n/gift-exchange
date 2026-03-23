@@ -112,6 +112,8 @@ export async function runMatching(eventId: string) {
                     type: 'SEND_MATCH',
                     payload: JSON.stringify({
                         email,
+                        eventId: event.id,
+                        eventName: event.name,
                         householdName: p.household.name,
                         recipients: recipientKids.map(k => ({ id: k.id, name: k.name })),
                         budget: event.budget,
