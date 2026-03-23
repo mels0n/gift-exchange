@@ -49,6 +49,9 @@ export async function joinEvent(formData: FormData) {
 
     const event = await db.event.findUnique({ where: { id: eventId } });
     if (!event || event.status !== 'OPEN') return { error: 'Event not found or no longer open.' };
+    if (new Date() > new Date(event.regDeadline)) {
+        return { error: 'Registration deadline has passed.' };
+    }
 
     const existing = await db.participation.findUnique({
         where: { eventId_householdId: { eventId: event.id, householdId: household.id } },

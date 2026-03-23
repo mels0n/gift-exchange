@@ -14,6 +14,15 @@ export default async function AdminPage() {
         include: { _count: { select: { participations: true, matches: true } } },
     });
 
+    const myEventIds = events.filter(e => e.createdByEmail === email).map(e => e.id);
+    const myParticipations = myEventIds.length > 0
+        ? await db.participation.findMany({
+            where: { eventId: { in: myEventIds } },
+            include: { household: true, event: true },
+            orderBy: { event: { name: 'asc' } },
+          })
+        : [];
+
     return (
         <main className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#2a1b1b] to-black text-white p-8 overflow-hidden">
             <h1 className="text-3xl font-serif font-bold mb-8 text-transparent bg-clip-text bg-gradient-to-r from-red-200 to-rose-100">Admin Operations</h1>
@@ -57,6 +66,25 @@ export default async function AdminPage() {
                     </div>
                 )}
             </section>
+
+            {myParticipations.length > 0 && (
+                <section className="backdrop-blur-md bg-white/5 border border-white/10 p-6 rounded-xl shadow-lg mb-8">
+                    <h2 className="text-xl font-serif text-white/90 mb-4">Participants in Your Events</h2>
+                    <div className="space-y-2">
+                        {myParticipations.map(p => {
+                            const kidIds: string[] = JSON.parse(p.participatingKidIds);
+                            return (
+                                <div key={p.id} className="flex items-center justify-between bg-black/20 border border-white/5 rounded-xl px-4 py-3">
+                                    <div>
+                                        <p className="text-white/90 font-medium">{p.household.name}</p>
+                                        <p className="text-xs text-white/40">{p.event.name} · {kidIds.length} kid{kidIds.length !== 1 ? 's' : ''}</p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </section>
+            )}
 
             <div className="mt-8">
                 <h2 className="text-xl font-serif text-white/90 mb-4">Current Strategy</h2>
