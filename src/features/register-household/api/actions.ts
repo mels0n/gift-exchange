@@ -44,11 +44,11 @@ export async function joinEvent(formData: FormData) {
     });
     if (!household) return { error: 'Household not found.' };
 
-    const event = await db.event.findFirst({
-        where: { status: 'OPEN' },
-        orderBy: { createdAt: 'desc' },
-    });
-    if (!event) return { error: 'No open event found.' };
+    const eventId = formData.get('eventId') as string | null;
+    if (!eventId) return { error: 'Missing event ID.' };
+
+    const event = await db.event.findUnique({ where: { id: eventId } });
+    if (!event || event.status !== 'OPEN') return { error: 'Event not found or no longer open.' };
 
     const existing = await db.participation.findUnique({
         where: { eventId_householdId: { eventId: event.id, householdId: household.id } },

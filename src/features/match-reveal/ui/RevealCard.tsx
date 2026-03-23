@@ -6,7 +6,7 @@ import { Gift } from 'lucide-react';
 
 type MatchData = {
     totalKids: number;
-    recipients: { name: string; age: number; id: string }[];
+    recipients: { name: string; age: number | null; id: string }[];
     config: { budget: number; items: number };
 };
 

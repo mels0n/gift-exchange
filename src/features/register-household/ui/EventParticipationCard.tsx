@@ -5,22 +5,44 @@ import type { Event, Kid, Participation } from '@prisma/client';
 import { Calendar, CheckCircle2, Users } from 'lucide-react';
 import Link from 'next/link';
 
-type Props = {
-    event: Event | null;
+type EventWithParticipation = {
+    event: Event;
     participation: Participation | null;
+};
+
+type Props = {
+    events: EventWithParticipation[];
     kids: Kid[];
 };
 
-export function EventParticipationCard({ event, participation, kids }: Props) {
-    if (!event) {
+export function EventParticipationCard({ events, kids }: Props) {
+    if (events.length === 0) {
         return (
             <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 shadow-xl">
-                <h2 className="text-xl font-serif text-white/90 mb-3">Exchange Event</h2>
-                <p className="text-white/40 text-sm italic">No active event right now. Check back later!</p>
+                <h2 className="text-xl font-serif text-white/90 mb-3">Exchange Events</h2>
+                <p className="text-white/40 text-sm italic">No active events right now. Check back later!</p>
             </div>
         );
     }
 
+    return (
+        <div className="space-y-4">
+            {events.map(({ event, participation }) => (
+                <EventCard key={event.id} event={event} participation={participation} kids={kids} />
+            ))}
+        </div>
+    );
+}
+
+function EventCard({
+    event,
+    participation,
+    kids,
+}: {
+    event: Event;
+    participation: Participation | null;
+    kids: Kid[];
+}) {
     const deadline = new Date(event.regDeadline).toLocaleDateString('en-US', {
         month: 'long', day: 'numeric', year: 'numeric',
     });
@@ -34,7 +56,7 @@ export function EventParticipationCard({ event, participation, kids }: Props) {
                     <span className="font-medium">Matching complete! Your assignments are ready.</span>
                 </div>
                 <Link
-                    href="/reveal"
+                    href={`/reveal/${event.id}`}
                     className="inline-block bg-gradient-to-r from-red-700 to-rose-800 hover:from-red-600 hover:to-rose-700 text-white px-6 py-2 rounded-xl text-sm font-medium shadow-lg transition-all"
                 >
                     View My Assignments →
@@ -54,21 +76,20 @@ export function EventParticipationCard({ event, participation, kids }: Props) {
                     <span className="font-medium">You&apos;re in! Waiting for the organizer to run matching.</span>
                 </div>
                 <p className="text-xs uppercase tracking-wider text-white/40 font-semibold mb-3">Participating Kids</p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mb-4">
                     {participatingKids.map(k => (
                         <span key={k.id} className="bg-black/20 border border-white/5 px-3 py-1 rounded-full text-sm text-white/80">
                             {k.name}
                         </span>
                     ))}
                 </div>
-                <p className="text-xs text-white/30 mt-4 flex items-center gap-1.5">
+                <p className="text-xs text-white/30 flex items-center gap-1.5">
                     <Calendar className="w-3 h-3" /> Registration closes {deadline}
                 </p>
             </div>
         );
     }
 
-    // Not yet joined — show join form
     async function handleJoin(formData: FormData) {
         const res = await joinEvent(formData);
         if (res?.error) alert(res.error);
@@ -82,6 +103,7 @@ export function EventParticipationCard({ event, participation, kids }: Props) {
                 Registration closes {deadline} · ${event.budget}/kid · {event.items} items
             </p>
             <form action={handleJoin} className="space-y-4">
+                <input type="hidden" name="eventId" value={event.id} />
                 <fieldset>
                     <legend className="text-xs uppercase tracking-wider text-white/40 font-semibold mb-3 flex items-center gap-1.5">
                         <Users className="w-3.5 h-3.5" /> Select kids to enter

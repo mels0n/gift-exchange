@@ -1,16 +1,11 @@
 import { db } from '@/shared/api/db';
-import { getSession } from '@/shared/lib/session';
-import { redirect } from 'next/navigation';
+import { requireSession } from '@/shared/lib/session';
 import { RulesCard } from '@/features/matching/ui/RulesCard';
 import { CreateEventForm } from './CreateEventForm';
 import { RunMatchingButton } from './RunMatchingButton';
 
 export default async function AdminPage() {
-    const session = await getSession();
-    const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim()).filter(Boolean);
-    if (!session || (adminEmails.length > 0 && !adminEmails.includes(session.email))) {
-        redirect('/login');
-    }
+    await requireSession();
 
     const houseCount = await db.household.count();
     const jobsPending = await db.job.count({ where: { status: 'PENDING' } });
