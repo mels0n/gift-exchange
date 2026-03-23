@@ -116,3 +116,68 @@ export async function joinEvent(formData: FormData) {
 
     redirect('/dashboard');
 }
+
+export async function addKid(formData: FormData) {
+    const { email } = await requireSession();
+    const household = await db.household.findFirst({
+        where: { emails: { contains: email } },
+    });
+    if (!household) return { error: 'Household not found.' };
+
+    const name = (formData.get('kidName') as string | null)?.trim();
+    if (!name) return { error: 'Name is required.' };
+
+    const dobStr = formData.get('kidDob') as string | null;
+    await db.kid.create({
+        data: {
+            name,
+            dob: dobStr ? new Date(dobStr) : null,
+            householdId: household.id,
+        },
+    });
+
+    redirect('/household');
+}
+
+export async function removeKid(formData: FormData) {
+    const { email } = await requireSession();
+    const household = await db.household.findFirst({
+        where: { emails: { contains: email } },
+        include: { kids: true },
+    });
+    if (!household) return { error: 'Household not found.' };
+
+    const kidId = formData.get('kidId') as string | null;
+    if (!kidId) return { error: 'Missing kid ID.' };
+
+    const owned = household.kids.some(k => k.id === kidId);
+    if (!owned) return { error: 'Not your kid.' };
+
+    await db.kid.delete({ where: { id: kidId } });
+    redirect('/household');
+}
+
+export async function updateEmails(formData: FormData) {
+    const { email: sessionEmail } = await requireSession();
+    const household = await db.household.findFirst({
+        where: { emails: { contains: sessionEmail } },
+    });
+    if (!household) return { error: 'Household not found.' };
+
+    const rawEmails = formData.getAll('email') as string[];
+    const emails = rawEmails.map(e => e.trim()).filter(e => e.length > 0);
+
+    // Always keep the session email in the list
+    if (!emails.includes(sessionEmail)) {
+        emails.unshift(sessionEmail);
+    }
+
+    if (emails.length === 0) return { error: 'At least one email is required.' };
+
+    await db.household.update({
+        where: { id: household.id },
+        data: { emails: JSON.stringify(emails) },
+    });
+
+    redirect('/household');
+}

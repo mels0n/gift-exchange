@@ -76,7 +76,12 @@ export default async function DashboardPage() {
                         <span className="font-medium tracking-wide">Registration Complete</span>
                     </div>
                     <div className="mt-8">
-                        <h3 className="text-xs uppercase tracking-wider text-white/40 font-semibold mb-4">Registered Kids</h3>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xs uppercase tracking-wider text-white/40 font-semibold">Registered Kids</h3>
+                            <Link href="/household" className="text-xs text-red-300 hover:text-red-200 underline underline-offset-2 transition-colors">
+                                Manage Household
+                            </Link>
+                        </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {household.kids.map((kid) => (
                                 <div key={kid.id} className="bg-black/20 border border-white/5 rounded-xl p-4 flex items-center gap-3">
