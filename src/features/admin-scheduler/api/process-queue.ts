@@ -180,6 +180,37 @@ async function processSingleJob(job: { id: string; type: string; payload: string
             break;
         }
 
+        case 'SEND_JOIN_CONFIRMATION': {
+            const html = `<!DOCTYPE html>
+<html>
+<body style="font-family:Georgia,serif;background:#0f0f0f;color:#f5f0eb;margin:0;padding:32px;">
+  <div style="max-width:480px;margin:0 auto;background:#1a1010;border:1px solid #3a2020;border-radius:12px;padding:40px;">
+    <h1 style="font-size:24px;color:#f8c4c4;margin:0 0 16px;">🎄 You&apos;ve joined!</h1>
+    <p style="color:#a08080;font-size:15px;margin:0 0 8px;">
+      <strong style="color:#f8c4c4;">${payload.householdName}</strong> is now registered for
+      <strong style="color:#f8c4c4;">${payload.eventName}</strong>.
+    </p>
+    <p style="color:#a08080;font-size:14px;margin:0 0 24px;">
+      You&apos;ll receive your gift assignments by email once matching is complete.
+    </p>
+    <p style="font-size:11px;color:#604040;text-align:center;margin:0;">Giftr — the thoughtful way to give.</p>
+  </div>
+</body>
+</html>`;
+
+            if (useRealEmail) {
+                await resend.emails.send({
+                    from,
+                    to: payload.email,
+                    subject: `🎄 You've joined ${payload.eventName}!`,
+                    html,
+                });
+            } else {
+                console.log('[MOCK SEND_JOIN_CONFIRMATION]', payload);
+            }
+            break;
+        }
+
         default:
             throw new Error(`Unknown job type: ${job.type}`);
     }

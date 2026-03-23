@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { AcceptInviteButton } from './AcceptInviteButton';
+import { DeclineInviteButton } from './DeclineInviteButton';
 
 export default async function InvitePage({ params }: { params: Promise<{ token: string }> }) {
     const { token } = await params;
@@ -53,6 +54,7 @@ export default async function InvitePage({ params }: { params: Promise<{ token: 
                     Join <strong className="text-white/90">{invite.event.name}</strong> as <span className="text-white/80">{household.name}</span>.
                 </p>
                 <AcceptInviteButton token={token} />
+                <DeclineInviteButton token={token} />
             </div>
         </main>
     );

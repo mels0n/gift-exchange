@@ -42,6 +42,7 @@ export async function registerHousehold(formData: FormData) {
     if (pendingToken) {
         const invite = await db.invite.findUnique({
             where: { token: pendingToken },
+            include: { event: true },
         });
         if (invite && invite.status === 'PENDING') {
             // Get the newly created household with kids
@@ -66,6 +67,20 @@ export async function registerHousehold(formData: FormData) {
                     where: { id: invite.id },
                     data: { status: 'ACCEPTED' },
                 });
+                // Send join confirmation
+                const householdEmails: string[] = JSON.parse(newHousehold.emails);
+                for (const addr of householdEmails) {
+                    await db.job.create({
+                        data: {
+                            type: 'SEND_JOIN_CONFIRMATION',
+                            payload: JSON.stringify({
+                                email: addr,
+                                eventName: invite.event.name,
+                                householdName: newHousehold.name,
+                            }),
+                        },
+                    });
+                }
             }
         }
         cookieStore.delete('invite_token');
