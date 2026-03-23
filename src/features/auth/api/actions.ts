@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { db } from '@/shared/api/db';
-import { cookies } from 'next/headers';
+import { setSession } from '@/shared/lib/session';
 import { redirect } from 'next/navigation';
 
 const LoginSchema = z.object({
@@ -79,14 +79,6 @@ export async function verifyOtp(email: string, code: string) {
         data: { used: true },
     });
 
-    // Set session cookie
-    const cookieStore = await cookies();
-    cookieStore.set('session_id', JSON.stringify({ email }), {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60 * 24 * 30, // 30 days
-        sameSite: 'lax',
-    });
-
+    await setSession(email);
     redirect('/dashboard');
 }
