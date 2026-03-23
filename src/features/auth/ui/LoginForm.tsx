@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { requestOtp, verifyOtp } from '../api/actions';
 
-export function LoginForm() {
+export function LoginForm({ redirectTo }: { redirectTo?: string }) {
     const [step, setStep] = useState<'EMAIL' | 'OTP'>('EMAIL');
     const [email, setEmail] = useState('');
 
@@ -17,7 +17,7 @@ export function LoginForm() {
 
     async function handleOtp(formData: FormData) {
         const code = formData.get('code') as string;
-        await verifyOtp(email, code);
+        await verifyOtp(email, code, redirectTo);
     }
 
     return (

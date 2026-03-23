@@ -1,9 +1,9 @@
 import { LoginForm } from '@/features/auth/ui/LoginForm';
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ redirect?: string }> }) {
+    const { redirect: redirectTo } = await searchParams;
     return (
         <main className="min-h-screen flex flex-col justify-center items-center p-4 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#2a1b1b] to-black relative overflow-hidden">
-            {/* Background Texture/Noise overlay if desired, or simple gradient */}
             <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5 pointer-events-none mix-blend-overlay"></div>
 
             <div className="w-full max-w-md z-10 space-y-8">
@@ -16,7 +16,7 @@ export default function LoginPage() {
                         The thoughtful way to give.
                     </p>
                 </div>
-                <LoginForm />
+                <LoginForm redirectTo={redirectTo} />
             </div>
         </main>
     );

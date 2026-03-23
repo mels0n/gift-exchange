@@ -3,6 +3,7 @@
 import { db } from '@/shared/api/db';
 import { requireSession } from '@/shared/lib/session';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export async function registerHousehold(formData: FormData) {
     const { email: creatorEmail } = await requireSession();
@@ -30,6 +31,41 @@ export async function registerHousehold(formData: FormData) {
     } catch (e) {
         console.error(e);
         return { error: 'Failed to create household' };
+    }
+
+    // Auto-accept pending invite if one was stored before registration
+    const cookieStore = await cookies();
+    const pendingToken = cookieStore.get('invite_token')?.value;
+    if (pendingToken) {
+        const invite = await db.invite.findUnique({
+            where: { token: pendingToken },
+        });
+        if (invite && invite.status === 'PENDING') {
+            // Get the newly created household with kids
+            const newHousehold = await db.household.findFirst({
+                where: { emails: { contains: creatorEmail } },
+                include: { kids: true },
+            });
+            if (newHousehold) {
+                const alreadyJoined = await db.participation.findUnique({
+                    where: { eventId_householdId: { eventId: invite.eventId, householdId: newHousehold.id } },
+                });
+                if (!alreadyJoined) {
+                    await db.participation.create({
+                        data: {
+                            eventId: invite.eventId,
+                            householdId: newHousehold.id,
+                            participatingKidIds: JSON.stringify(newHousehold.kids.map(k => k.id)),
+                        },
+                    });
+                }
+                await db.invite.update({
+                    where: { id: invite.id },
+                    data: { status: 'ACCEPTED' },
+                });
+            }
+        }
+        cookieStore.delete('invite_token');
     }
 
     redirect('/dashboard?registered=true');

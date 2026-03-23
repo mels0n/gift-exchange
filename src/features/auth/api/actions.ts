@@ -58,7 +58,7 @@ export async function requestOtp(formData: FormData) {
 /**
  * Step 2: Verify OTP
  */
-export async function verifyOtp(email: string, code: string) {
+export async function verifyOtp(email: string, code: string, redirectTo = '/dashboard') {
     const otpRecord = await db.otpCode.findFirst({
         where: {
             email,
@@ -80,5 +80,5 @@ export async function verifyOtp(email: string, code: string) {
     });
 
     await setSession(email);
-    redirect('/dashboard');
+    redirect(redirectTo);
 }
