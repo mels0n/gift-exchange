@@ -2,7 +2,8 @@ import { db } from '@/shared/api/db';
 import { getSession } from '@/shared/lib/session';
 import { redirect } from 'next/navigation';
 import { RulesCard } from '@/features/matching/ui/RulesCard';
-import { createEvent, runMatching } from './actions';
+import { CreateEventForm } from './CreateEventForm';
+import { RunMatchingButton } from './RunMatchingButton';
 
 export default async function AdminPage() {
     const session = await getSession();
@@ -31,56 +32,7 @@ export default async function AdminPage() {
             {/* Create Event */}
             <section className="backdrop-blur-md bg-white/5 border border-white/10 p-6 rounded-xl shadow-lg mb-8">
                 <h2 className="text-xl font-serif text-white/90 mb-4">Create Event</h2>
-                <form action={createEvent} className="grid grid-cols-2 gap-4">
-                    <div className="col-span-2 sm:col-span-1">
-                        <label className="block text-xs uppercase tracking-wider text-red-200/60 font-medium mb-1">Event Name</label>
-                        <input
-                            name="name"
-                            required
-                            placeholder="Christmas 2025"
-                            className="w-full p-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs uppercase tracking-wider text-red-200/60 font-medium mb-1">Budget per Kid ($)</label>
-                        <input
-                            name="budget"
-                            type="number"
-                            required
-                            min="1"
-                            placeholder="30"
-                            className="w-full p-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs uppercase tracking-wider text-red-200/60 font-medium mb-1">Items per Kid</label>
-                        <input
-                            name="items"
-                            type="number"
-                            required
-                            min="1"
-                            placeholder="3"
-                            className="w-full p-3 bg-black/20 border border-white/10 rounded-xl text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs uppercase tracking-wider text-red-200/60 font-medium mb-1">Registration Deadline</label>
-                        <input
-                            name="regDeadline"
-                            type="datetime-local"
-                            required
-                            className="w-full p-3 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
-                        />
-                    </div>
-                    <div className="col-span-2 flex justify-end">
-                        <button
-                            type="submit"
-                            className="bg-gradient-to-r from-red-700 to-rose-800 hover:from-red-600 hover:to-rose-700 text-white px-6 py-2 rounded-xl shadow-lg shadow-red-900/40 transition-all font-medium text-sm"
-                        >
-                            Create Event
-                        </button>
-                    </div>
-                </form>
+                <CreateEventForm />
             </section>
 
             {/* Events List */}
@@ -100,16 +52,7 @@ export default async function AdminPage() {
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <StatusBadge status={event.status} />
-                                    {event.status === 'OPEN' && (
-                                        <form action={runMatching.bind(null, event.id)}>
-                                            <button
-                                                type="submit"
-                                                className="bg-gradient-to-r from-emerald-700 to-green-800 hover:from-emerald-600 hover:to-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium shadow-lg transition-all"
-                                            >
-                                                Run Matching
-                                            </button>
-                                        </form>
-                                    )}
+                                    {event.status === 'OPEN' && <RunMatchingButton eventId={event.id} />}
                                 </div>
                             </div>
                         ))}
