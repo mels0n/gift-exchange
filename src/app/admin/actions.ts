@@ -14,7 +14,7 @@ const CreateEventSchema = z.object({
 });
 
 export async function createEvent(formData: FormData) {
-    await requireSession();
+    const { email } = await requireSession();
 
     const parsed = CreateEventSchema.safeParse({
         name: formData.get('name'),
@@ -39,6 +39,7 @@ export async function createEvent(formData: FormData) {
                 items,
                 regDeadline: new Date(regDeadline),
                 status: 'OPEN',
+                createdByEmail: email,
             },
         });
     } catch {
@@ -50,11 +51,14 @@ export async function createEvent(formData: FormData) {
 }
 
 export async function runMatching(eventId: string) {
-    await requireSession();
+    const { email } = await requireSession();
 
     const event = await db.event.findUnique({ where: { id: eventId } });
     if (!event || event.status !== 'OPEN') {
         return { error: 'Event not found or not in OPEN status.' };
+    }
+    if (event.createdByEmail !== email) {
+        return { error: 'Only the event creator can run matching.' };
     }
 
     // Load participating households with only their participating kids

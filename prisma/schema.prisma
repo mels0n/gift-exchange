@@ -12,7 +12,8 @@ model Event {
   slug      String   @unique
   name      String
   strategy  String   @default("COUSIN_EXCHANGE")
-  status    String   @default("DRAFT") // DRAFT, OPEN, LOCKED, MATCHED, ARCHIVED
+  status         String   @default("DRAFT") // DRAFT, OPEN, LOCKED, MATCHED, ARCHIVED
+  createdByEmail String   @default("")
 
   // Config
   budget       Int

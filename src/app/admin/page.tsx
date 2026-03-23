@@ -5,7 +5,7 @@ import { CreateEventForm } from './CreateEventForm';
 import { RunMatchingButton } from './RunMatchingButton';
 
 export default async function AdminPage() {
-    await requireSession();
+    const { email } = await requireSession();
 
     const houseCount = await db.household.count();
     const jobsPending = await db.job.count({ where: { status: 'PENDING' } });
@@ -44,10 +44,13 @@ export default async function AdminPage() {
                                     <p className="text-xs text-white/40 mt-0.5">
                                         {event._count.participations} households · {event._count.matches} matches · ${event.budget}/kid · {event.items} items
                                     </p>
+                                    <p className="text-xs text-white/30 mt-0.5">by {event.createdByEmail || 'unknown'}</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <StatusBadge status={event.status} />
-                                    {event.status === 'OPEN' && <RunMatchingButton eventId={event.id} />}
+                                    {event.status === 'OPEN' && event.createdByEmail === email && (
+                                        <RunMatchingButton eventId={event.id} />
+                                    )}
                                 </div>
                             </div>
                         ))}
