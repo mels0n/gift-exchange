@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  name      String
+  strategy  String   @default("COUSIN_EXCHANGE")
+  status    String   @default("DRAFT") // DRAFT, OPEN, LOCKED, MATCHED, ARCHIVED
+
+  // Config
+  budget       Int
+  items        Int
+  regDeadline  DateTime
+  revealDate   DateTime?
+  timezone     String   @default("UTC")
+
+  participations Participation[]
+  matches        Match[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Household {
+  id        String   @id @default(uuid())
+  name      String
+  emails    String   // JSON array of strings
+  
+  kids      Kid[]
+  participations Participation[]
+  
+  // Relationships for Matching
+  givenMatches  Match[] @relation("GiverHousehold")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Kid {
+  id          String   @id @default(uuid())
+  name        String
+  dob         DateTime?
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  
+  receivedMatches Match[] @relation("RecipientKid")
+}
+
+model Participation {
+  id          String   @id @default(uuid())
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  
+  // Which kids from this household are in this event?
+  participatingKidIds String // JSON array of Kid IDs
+
+  @@unique([eventId, householdId])
+}
+
+model Match {
+  id             String   @id @default(uuid())
+  eventId        String
+  event          Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  
+  giverHouseId   String
+  giverHouse     Household @relation("GiverHousehold", fields: [giverHouseId], references: [id], onDelete: Cascade)
+  
+  recipientKidId String
+  recipientKid   Kid      @relation("RecipientKid", fields: [recipientKidId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Job {
+  id        String   @id @default(uuid())
+  type      String   // 'SEND_OTP', 'SEND_INVITE', 'SEND_MATCH'
+  payload   String   // JSON
+  status    String   @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
+  attempts  Int      @default(0)
+  lastError String?
+
+  runAt     DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
