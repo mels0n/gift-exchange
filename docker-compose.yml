@@ -1,0 +1,20 @@
+version: '3.9'
+
+services:
+  app:
+    container_name: cousin-exchange
+    build: .
+    command: /bin/sh -c "cp -n ./dev.db /app/data/store.db; node server.js"
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=file:/app/data/store.db
+      - RESEND_API_KEY=${RESEND_API_KEY}
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
