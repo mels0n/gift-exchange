@@ -1,17 +1,30 @@
 import { db } from '@/shared/api/db';
 import { requireSession } from '@/shared/lib/session';
 import { HouseholdRegistrationForm } from '@/features/register-household/ui/HouseholdRegistrationForm';
+import { EventParticipationCard } from '@/features/register-household/ui/EventParticipationCard';
 import { RulesCard } from '@/features/matching/ui/RulesCard';
 import Link from 'next/link';
 
 export default async function DashboardPage() {
     const { email } = await requireSession();
 
-    // Check if household exists
     const household = await db.household.findFirst({
         where: { emails: { contains: email } },
-        include: { kids: true }
+        include: { kids: true },
     });
+
+    const activeEvent = household
+        ? await db.event.findFirst({
+            where: { status: { in: ['OPEN', 'MATCHED'] } },
+            orderBy: { createdAt: 'desc' },
+          })
+        : null;
+
+    const participation = activeEvent && household
+        ? await db.participation.findUnique({
+            where: { eventId_householdId: { eventId: activeEvent.id, householdId: household.id } },
+          })
+        : null;
 
     if (!household) {
         return (
@@ -62,7 +75,13 @@ export default async function DashboardPage() {
                     </div>
                 </section>
 
-                {/* TODO: Add Event Participation Card */}
+                <section className="mt-8">
+                    <EventParticipationCard
+                        event={activeEvent}
+                        participation={participation}
+                        kids={household.kids}
+                    />
+                </section>
 
                 <section className="mt-12">
                     <RulesCard />

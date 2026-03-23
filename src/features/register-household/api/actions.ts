@@ -1,57 +1,76 @@
 'use server';
 
-import { z } from 'zod';
 import { db } from '@/shared/api/db';
-import { cookies } from 'next/headers';
+import { requireSession } from '@/shared/lib/session';
 import { redirect } from 'next/navigation';
 
-const KidSchema = z.object({
-    name: z.string().min(1),
-    dob: z.string().optional(), // ISO Date string
-});
-
-const HouseholdSchema = z.object({
-    name: z.string().min(2),
-    parentEmails: z.string().email().array().min(1),
-    kids: z.array(KidSchema),
-});
-
 export async function registerHousehold(formData: FormData) {
-    // 1. Get Session
-    const cookieStore = await cookies();
-    const session = cookieStore.get('session_id');
-    if (!session) return { error: 'Unauthorized' };
+    const { email: creatorEmail } = await requireSession();
 
-    const creatorEmail = JSON.parse(session.value).email; // Insecure for prod, fine for MVP if key signed
-
-    // 2. Parse Data
-    // (In real app, we'd loop over form entries, here assuming strict naming or using a library like conform)
-    // implementing manual extraction for demo
     const name = formData.get('name') as string;
-    const parentEmail = formData.get('parentEmail') as string; // Primary email
+    const parentEmail = (formData.get('parentEmail') as string | null) ?? '';
     const kidNames = formData.getAll('kidName') as string[];
 
-    if (!name || !parentEmail) return { error: 'Missing required fields' };
+    if (!name) return { error: 'Missing required fields' };
 
-    // 3. Save to DB
+    const emails = [creatorEmail, parentEmail]
+        .map(e => e.trim())
+        .filter((e, i, a) => e.length > 0 && a.indexOf(e) === i);
+
     try {
-        const household = await db.household.create({
+        await db.household.create({
             data: {
                 name,
-                emails: JSON.stringify([creatorEmail, parentEmail].filter((e, i, a) => a.indexOf(e) === i)), // Dedupe
+                emails: JSON.stringify(emails),
                 kids: {
-                    create: kidNames.map(k => ({ name: k }))
-                }
-            }
+                    create: kidNames.filter(k => k.trim()).map(k => ({ name: k.trim() })),
+                },
+            },
         });
-
-        // Auto-link invite if exists
-        // ...
-
     } catch (e) {
         console.error(e);
         return { error: 'Failed to create household' };
     }
 
     redirect('/dashboard?registered=true');
+}
+
+export async function joinEvent(formData: FormData) {
+    const { email } = await requireSession();
+
+    const household = await db.household.findFirst({
+        where: { emails: { contains: email } },
+        include: { kids: true },
+    });
+    if (!household) return { error: 'Household not found.' };
+
+    const event = await db.event.findFirst({
+        where: { status: 'OPEN' },
+        orderBy: { createdAt: 'desc' },
+    });
+    if (!event) return { error: 'No open event found.' };
+
+    const existing = await db.participation.findUnique({
+        where: { eventId_householdId: { eventId: event.id, householdId: household.id } },
+    });
+    if (existing) return { error: 'Already joined this event.' };
+
+    const kidIds = formData.getAll('kidId') as string[];
+    if (kidIds.length === 0) return { error: 'Select at least one child.' };
+
+    // Validate all selected IDs belong to this household
+    const validIds = household.kids.map(k => k.id);
+    if (!kidIds.every(id => validIds.includes(id))) {
+        return { error: 'Invalid kid selection.' };
+    }
+
+    await db.participation.create({
+        data: {
+            eventId: event.id,
+            householdId: household.id,
+            participatingKidIds: JSON.stringify(kidIds),
+        },
+    });
+
+    redirect('/dashboard');
 }
