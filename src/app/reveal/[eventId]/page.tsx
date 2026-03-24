@@ -18,8 +18,10 @@ export default async function RevealPage({ params }: { params: Promise<{ eventId
 
     const matches = await db.match.findMany({
         where: { eventId, giverHouseId: household.id },
-        include: { recipientKid: true },
+        include: { recipientKid: { include: { household: true } } },
     });
+
+    const recipientFamilyName = matches[0]?.recipientKid.household.name ?? null;
 
     if (matches.length === 0) {
         return (
@@ -54,6 +56,11 @@ export default async function RevealPage({ params }: { params: Promise<{ eventId
                 <p className="text-red-200/60 mt-2 font-medium tracking-wide">
                     {event.name} — {household.name}
                 </p>
+                {event.strategy === 'SECRET_SANTA' && recipientFamilyName && (
+                    <p className="text-white/50 mt-3 text-sm">
+                        You&apos;re buying for <strong className="text-white/80">{recipientFamilyName}</strong> this year.
+                    </p>
+                )}
             </div>
             <RevealCard data={revealData} />
         </main>

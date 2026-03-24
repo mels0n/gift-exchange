@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { db } from '@/shared/api/db';
 import { requireSession } from '@/shared/lib/session';
 import { CousinExchangeStrategy } from '@/features/matching/algo/cousin-exchange';
+import { SecretSantaStrategy } from '@/features/matching/algo/secret-santa';
+import { MatchingStrategy } from '@/features/matching/algo/strategies';
 import { revalidatePath } from 'next/cache';
 
 const CreateEventSchema = z.object({
@@ -11,6 +13,7 @@ const CreateEventSchema = z.object({
     budget: z.coerce.number().int().positive(),
     items: z.coerce.number().int().positive(),
     regDeadline: z.string().min(1),
+    strategy: z.enum(['COUSIN_EXCHANGE', 'SECRET_SANTA']).default('COUSIN_EXCHANGE'),
 });
 
 export async function createEvent(formData: FormData) {
@@ -21,13 +24,14 @@ export async function createEvent(formData: FormData) {
         budget: formData.get('budget'),
         items: formData.get('items'),
         regDeadline: formData.get('regDeadline'),
+        strategy: formData.get('strategy'),
     });
 
     if (!parsed.success) {
         return { error: parsed.error.issues[0].message };
     }
 
-    const { name, budget, items, regDeadline } = parsed.data;
+    const { name, budget, items, regDeadline, strategy } = parsed.data;
     const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
     try {
@@ -40,6 +44,7 @@ export async function createEvent(formData: FormData) {
                 regDeadline: new Date(regDeadline),
                 status: 'OPEN',
                 createdByEmail: email,
+                strategy,
             },
         });
     } catch {
@@ -82,7 +87,9 @@ export async function runMatching(eventId: string) {
     // Run algorithm
     let matches;
     try {
-        const strategy = new CousinExchangeStrategy();
+        const strategy: MatchingStrategy = event.strategy === 'SECRET_SANTA'
+            ? new SecretSantaStrategy()
+            : new CousinExchangeStrategy();
         matches = strategy.match(households);
     } catch (err) {
         return { error: String(err) };

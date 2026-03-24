@@ -54,6 +54,17 @@ export function CreateEventForm() {
                     className="w-full p-3 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
                 />
             </div>
+            <div className="col-span-2 sm:col-span-1">
+                <label className="block text-xs uppercase tracking-wider text-red-200/60 font-medium mb-1">Matching Strategy</label>
+                <select
+                    name="strategy"
+                    defaultValue="COUSIN_EXCHANGE"
+                    className="w-full p-3 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
+                >
+                    <option value="COUSIN_EXCHANGE">Cousin Exchange</option>
+                    <option value="SECRET_SANTA">Secret Santa</option>
+                </select>
+            </div>
             {error && <p className="col-span-2 text-red-400 text-xs">{error}</p>}
             <div className="col-span-2 flex justify-end">
                 <button
