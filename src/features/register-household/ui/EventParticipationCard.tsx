@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { joinEvent } from '../api/actions';
 import type { Event, Kid, Participation } from '@prisma/client';
 import { Calendar, CheckCircle2, Users } from 'lucide-react';
@@ -90,9 +91,12 @@ function EventCard({
         );
     }
 
+    const [joinError, setJoinError] = useState<string | null>(null);
+
     async function handleJoin(formData: FormData) {
+        setJoinError(null);
         const res = await joinEvent(formData);
-        if (res?.error) alert(res.error);
+        if (res?.error) setJoinError(res.error);
     }
 
     return (
@@ -125,6 +129,7 @@ function EventCard({
                         ))}
                     </div>
                 </fieldset>
+                {joinError && <p className="text-red-400 text-sm">{joinError}</p>}
                 <button
                     type="submit"
                     className="w-full bg-gradient-to-r from-red-700 to-rose-800 hover:from-red-600 hover:to-rose-700 text-white font-medium py-3 rounded-xl shadow-lg shadow-red-900/40 transition-all text-sm tracking-wide"

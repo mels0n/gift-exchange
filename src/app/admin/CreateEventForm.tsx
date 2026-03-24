@@ -1,11 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { createEvent } from './actions';
 
 export function CreateEventForm() {
+    const [error, setError] = useState<string | null>(null);
+
     async function handleSubmit(formData: FormData) {
+        setError(null);
         const res = await createEvent(formData);
-        if (res?.error) alert(res.error);
+        if (res?.error) setError(res.error);
     }
 
     return (
@@ -50,6 +54,7 @@ export function CreateEventForm() {
                     className="w-full p-3 bg-black/20 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all"
                 />
             </div>
+            {error && <p className="col-span-2 text-red-400 text-xs">{error}</p>}
             <div className="col-span-2 flex justify-end">
                 <button
                     type="submit"

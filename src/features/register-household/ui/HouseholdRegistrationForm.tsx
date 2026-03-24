@@ -6,15 +6,15 @@ import { Plus, Trash2 } from 'lucide-react';
 
 export function HouseholdRegistrationForm() {
     const [kids, setKids] = useState([0]); // Array of IDs
+    const [error, setError] = useState<string | null>(null);
 
     const addKid = () => setKids([...kids, kids.length]);
     const removeKid = (idx: number) => setKids(kids.filter((_, i) => i !== idx));
 
     async function handleSubmit(formData: FormData) {
+        setError(null);
         const res = await registerHousehold(formData);
-        if (res?.error) {
-            alert(res.error);
-        }
+        if (res?.error) setError(res.error);
     }
 
     return (
@@ -77,6 +77,7 @@ export function HouseholdRegistrationForm() {
             </div>
 
             <div className="border-t border-white/10 pt-6">
+                {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
                 <button type="submit" className="w-full bg-gradient-to-r from-red-700 to-rose-800 hover:from-red-600 hover:to-rose-700 text-white font-medium py-3 rounded-xl shadow-lg shadow-red-900/40 transform transition hover:-translate-y-0.5 active:translate-y-0 text-sm tracking-wide">
                     Complete Registration
                 </button>
