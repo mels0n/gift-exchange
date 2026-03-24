@@ -4,11 +4,11 @@ export async function register() {
         const missing: string[] = [];
 
         if (!process.env.DATABASE_URL) missing.push('DATABASE_URL');
+        if (!process.env.SESSION_SECRET) missing.push('SESSION_SECRET');
+        if (!process.env.NEXT_PUBLIC_BASE_URL) missing.push('NEXT_PUBLIC_BASE_URL');
+
         if (!process.env.RESEND_API_KEY) {
             console.warn('[Startup] RESEND_API_KEY is not set — emails will be mocked (logged to console only).');
-        }
-        if (!process.env.SESSION_SECRET) {
-            console.warn('[Startup] SESSION_SECRET is not set — using insecure development default. Set this in production.');
         }
 
         if (missing.length > 0) {
