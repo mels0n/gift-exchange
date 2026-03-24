@@ -54,8 +54,4 @@ build_log*.txt
 dev.db
 
 # agents
-.agent/
-.gsd/
-.claude/
-.gemini/
-
+# (Handled by local .git/info/exclude to prevent leaks on public launch)
